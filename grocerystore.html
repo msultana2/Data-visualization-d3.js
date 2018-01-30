@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>Grocery Store Survey</title>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.1/normalize.min.css" rel="stylesheet" data-semver="3.0.1" data-require="normalize@*" />
+    <style>
+		body{
+			padding:0 50px 25px 50px;
+		}
+      #chart {                                                          
+        height: 400px;                                                  
+        position: relative;                                             
+        width: 460px; 
+		margin-left:200px;
+      }                                                                 
+      .tooltip {                                                        
+        background: #eee;                                               
+        box-shadow: 0 0 5px #999999;                                    
+        color: #333;                                                    
+        display: none;                                                  
+        font-size: 12px;                                               
+        left: 145px;                                                    
+        padding: 5px;                                                  
+        position: absolute;                                             
+        text-align: center;                                             
+        top: 82px;                                                      
+        width: 60px;                                                    
+        z-index: 10;                                                   
+      }                                                                 
+      .legend {
+        font-size: 12px;
+      }
+      rect {
+        stroke-width: 2;
+      }
+	  .title{font-size:35px;}
+	  .para{font-size:14px;}
+	  a.ref{font-size:14px;}
+    </style>
+  </head>
+
+  <body>
+	<h1 class="title">GroceryStore dataset</h1>
+    <div id="chart"></div>
+    <script data-require="d3@*" data-semver="3.4.6" src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.6/d3.min.js"></script>
+    <script>
+      (function(d3) {
+        'use strict';
+		
+        var width = 360;
+        var height = 360;
+        var radius = Math.min(width, height) / 2;
+        var donutWidth = 75;
+        var legendRectSize = 18;
+        var legendSpacing = 4;
+
+        var color = d3.scale.category20();
+
+        var svg = d3.select('#chart')
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height)
+          .append('g')
+          .attr('transform', 'translate(' + (width / 2) + 
+            ',' + (height / 2) + ')');
+
+        var arc = d3.svg.arc()
+          .innerRadius(radius - donutWidth)
+          .outerRadius(radius);
+
+        var pie = d3.layout.pie()
+          .value(function(d) { return d.count; })
+          .sort(null);
+
+        var tooltip = d3.select('#chart')                               
+          .append('div')                                                
+          .attr('class', 'tooltip');                                    
+                      
+        tooltip.append('div')                                           
+          .attr('class', 'label');                                      
+             
+        tooltip.append('div')                                           
+          .attr('class', 'count');                                                                        
+
+        d3.csv('grocerystoresurvey.csv', function(error, dataset) {
+          var group=d3.map()
+		  var newdataset=[];
+		  dataset.forEach(function(d) {
+            if (group.has(d.PaymentMethod)){
+			    group.set(d.PaymentMethod,group.get(d.PaymentMethod)+1);
+			}
+			else
+				group.set(d.PaymentMethod,1);
+          });
+		  var keys=group.keys();
+		  for(var i=0;i<keys.length;i++){
+		      var dat={};
+			  dat.label=keys[i];
+			  dat.count=group.get(dat.label);
+			  newdataset.push(dat);
+		  }
+          var path = svg.selectAll('path')
+            .data(pie(newdataset))
+            .enter()
+            .append('path')
+            .attr('d', arc)
+            .attr('fill', function(d, i) { 
+              return color(d.data.label); 
+            });
+
+          path.on('mouseover', function(d) {                                                                                   
+            tooltip.select('.label').html(d.data.label);                
+            tooltip.select('.count').html(d.data.count);                          
+            tooltip.style('display', 'block');                          
+          });                                                           
+          
+          path.on('mouseout', function() {                              
+            tooltip.style('display', 'none');                          
+          });                                                           
+ 
+          var legend = svg.selectAll('.legend')
+            .data(color.domain())
+            .enter()
+            .append('g')
+            .attr('class', 'legend')
+            .attr('transform', function(d, i) {
+              var height = legendRectSize + legendSpacing;
+              var offset =  height * color.domain().length / 2;
+              var horz = -2 * legendRectSize;
+              var vert = i * height - offset;
+              return 'translate(' + horz + ',' + vert + ')';
+            });
+
+          legend.append('rect')
+            .attr('width', legendRectSize)
+            .attr('height', legendRectSize)                                   
+            .style('fill', color)
+            .style('stroke', color);
+            
+          legend.append('text')
+            .attr('x', legendRectSize + legendSpacing)
+            .attr('y', legendRectSize - legendSpacing)
+            .text(function(d) { return d; });
+
+        });
+
+      })(window.d3);
+    </script>
+	
+<p class="para"><b>Insights:</b> The legend represent the different payment method. The donut chart shows the total count corresponds to 
+different payment system. From the visualization it is clear that<br> the maximum count is 2410 and it comes from cash. 
+Storecard and check they are close to each other. The debitcard method is used less.<br>
+<h2>References</h2></p>
+
+1. <a class ="ref" href="http://zeroviscosity.com/d3-js-step-by-step/step-2-a-basic-donut-chart">
+http://zeroviscosity.com/d3-js-step-by-step/step-2-a-basic-donut-chart</a><br>
+2. <a class ="ref" href = "http://jsfiddle.net/gregfedorov/Qh9X5/9/">http://jsfiddle.net/gregfedorov/Qh9X5/9/</a><br>
+3. <a class = "ref" href ="https://github.com/d3/d3-collection">https://github.com/d3/d3-collection</a>
+</body>
+
+</html>
